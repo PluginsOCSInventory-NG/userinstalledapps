@@ -44,12 +44,12 @@ foreach ($user in $users) {
                 # reduce duplicate entries by checking if same app already listed
                 $comparator = "*$appname*"
                 if (-Not (@($appnames) -like $comparator)) {
-                    $xml += "<WINUSERAPP>`n"
+                    $xml += "<USERINSTALLEDAPPS>`n"
 						
 					    $xml += "<USERNAME>" + $username + "</USERNAME>`n"
 					    $xml += "<APPNAME>" + $appname + "</APPNAME>`n"
 					     
-				    $xml += "</WINUSERAPP>`n"
+				    $xml += "</USERINSTALLEDAPPS>`n"
                 }
                 $appnames += $appname
  
