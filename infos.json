@@ -3,7 +3,7 @@
   "author" : ["Léa DROGUET"],
   "contributor" : [],
   "supportedAgent" : ["Windows"],
-  "version" : "1.0",
+  "version" : "1.1",
   "licence" : "GPLv2",
   "description" : {
     "fr" : "Récupère les logiciels installés par utilisateurs",
