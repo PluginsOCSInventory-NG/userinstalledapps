@@ -82,8 +82,9 @@ $regLocalApplications | ForEach-Object {
 }
 
 # just in case
-if($xml -eq $null) {
+if($xml -eq '') {
 	$xml = "<USERINSTALLEDAPPS/>"
 }
 
-Write-Output $xml
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::WriteLine($xml)
