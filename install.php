@@ -12,6 +12,8 @@ function extension_install_userinstalledapps()
         `HARDWARE_ID` INT (11) NOT NULL,
         `USERNAME` VARCHAR(255) DEFAULT NULL,
         `APPNAME` VARCHAR(255) DEFAULT NULL,
+        `PUBLISHER` VARCHAR(255) DEFAULT NULL,
+        `VERSION` VARCHAR(255) DEFAULT NULL,
         PRIMARY KEY (`ID`, `HARDWARE_ID`)
         ) ENGINE=INNODB ;"); 
 }
