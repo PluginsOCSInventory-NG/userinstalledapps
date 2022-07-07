@@ -1,5 +1,11 @@
 
-function Get-Apps {
+#################################
+#           Functions           #
+#################################
+
+# Function to retrieve user installed applications
+function Get-Apps 
+{
     param([string] $SID)
 
     $regpaths = @("Registry::HKEY_USERS\$SID\Software\Microsoft\Windows\CurrentVersion\Uninstall\*", "Registry::HKEY_USERS\$SID\Software\", "Registry::HKEY_USERS\$SID\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\*")
@@ -8,29 +14,46 @@ function Get-Apps {
     return $regApplications
 }
 
-function Get-Local-Apps {
-
+# Function to retrieve local installed applications
+function Get-Local-Apps 
+{
     $regLocalPaths = @("Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*")
 	$regLocalApplications = Get-ItemProperty -Path $regLocalPaths -ErrorAction Ignore | Select *
 
     return $regLocalApplications
 }
 
+# Function to retrieve user SID
+function Get-Sid
+{
+	param([string]$pth, [array]$profileList)
+	foreach($sid in $profileList) {
+		if($pth -eq $sid.ProfileImagePath) {
+			return $sid.PSChildName
+		}
+	}
 
-function Get-Users {
-    $users = gwmi win32_UserAccount | Select Name, Caption, SID, Disabled | Where {$_.Disabled -eq $False}
-    return $users
+	return ""
 }
 
+$xml = ""
 
+$profileListPath =  @("Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\*")
+$profileList = Get-ItemProperty -Path $profileListPath -ErrorAction Ignore | Select ProfileImagePath, PSChildName
 
-$xml = ''
+$pathUsers = "C:\Users"
 
-$users = Get-Users
+$tmp = Get-ChildItem -Path $pathUsers | Select "Name"
+[System.Collections.ArrayList]$users = $tmp.Name
+
+while ($users -contains "Public") {
+	$users.Remove("Public")
+}
 
 foreach ($user in $users) {
-	$username = $user.Caption
-	$SID = $user.SID
+    $path = $pathUsers+"\"+$user
+	$username = $user
+	$SID = Get-Sid $path $profileList
     $appnames = @()
 
     $regApplications = Get-Apps $SID
@@ -40,19 +63,29 @@ foreach ($user in $users) {
 			if ($_ -ne $null) {
 				$appname = If ($_.DisplayName) {$_.DisplayName} Else {$_.PSChildName}
                 $appname = $appname -replace "\.[^.]*$", ""
+
+                $publisher = ""
+                $version = ""
+
+                if($_.Publisher -ne $null) {
+                    $publisher = $_.Publisher
+                }
+
+                if($_.DisplayVersion -ne $null) {
+                    $version = $_.DisplayVersion
+                }
                 
                 # reduce duplicate entries by checking if same app already listed
                 $comparator = "*$appname*"
                 if (-Not (@($appnames) -like $comparator)) {
                     $xml += "<USERINSTALLEDAPPS>`n"
-						
-					    $xml += "<USERNAME>" + $username + "</USERNAME>`n"
-					    $xml += "<APPNAME>" + $appname + "</APPNAME>`n"
-					     
+                    $xml += "<USERNAME>" + $username + "</USERNAME>`n"
+                    $xml += "<APPNAME>" + $appname + "</APPNAME>`n"
+                    $xml += "<PUBLISHER>" + $publisher + "</PUBLISHER>`n"
+                    $xml += "<VERSION>" + $version + "</VERSION>`n"
 				    $xml += "</USERINSTALLEDAPPS>`n"
                 }
                 $appnames += $appname
- 
 			}
 		}
 	}
@@ -65,16 +98,25 @@ $regLocalApplications | ForEach-Object {
         $username = $Matches[1]
         $appname = $_.DisplayName
 
-		# get user and domain from our $users
-        $user = $users | Where {$_.Name -eq $username}
+        $publisher = ""
+        $version = ""
+
+        if($_.Publisher -ne $null) {
+            $publisher = $_.Publisher
+        }
+
+        if($_.DisplayVersion -ne $null) {
+            $version = $_.DisplayVersion
+        }
+
 		# reduce duplicate entries by checking if this app is already listed
 		$comparator = "*$appname*"
         if (-Not (@($appnames) -like $comparator)) {
-            $xml += "<USERINSTALLEDAPPS>`n"
-						
-		        $xml += "<USERNAME>" + $user.Caption + "</USERNAME>`n"
-		        $xml += "<APPNAME>" + $appname + "</APPNAME>`n"
-					     
+            $xml += "<USERINSTALLEDAPPS>`n"	
+            $xml += "<USERNAME>" + $username + "</USERNAME>`n"
+            $xml += "<APPNAME>" + $appname + "</APPNAME>`n"
+            $xml += "<PUBLISHER>" + $publisher + "</PUBLISHER>`n"
+            $xml += "<VERSION>" + $version + "</VERSION>`n"  
 		    $xml += "</USERINSTALLEDAPPS>`n"
         }
         $appnames += $appname
