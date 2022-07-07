@@ -22,7 +22,9 @@ else{
     echo open_form($form_name);
 	$list_fields = array(
         'USERNAME' => 'USERNAME',
-        'APPNAME' => 'APPNAME'
+        'APPNAME' => 'APPNAME',
+        'PUBLISHER' => 'PUBLISHER',
+        'VERSION' => 'VERSION'
     );
     $list_col_cant_del=$list_fields;
     $default_fields= $list_fields;
